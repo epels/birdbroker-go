@@ -37,15 +37,15 @@ func TestPublish(t *testing.T) {
 				return 0, nil
 			},
 		}
-		mq := NewMessageQueue(&c)
+		snd := NewSender(&c)
 
-		err := mq.Publish(&birdbroker.Message{
+		err := snd.Send(&birdbroker.Message{
 			Body:       "Foo",
 			Originator: "Bar",
 			Recipient:  "Baz",
 		})
 		if err != nil {
-			t.Errorf("Publish: %s", err)
+			t.Errorf("Send: %s", err)
 		}
 		if !called {
 			t.Errorf("Got false, expected true")
@@ -58,9 +58,9 @@ func TestPublish(t *testing.T) {
 				return 0, errors.New("oops")
 			},
 		}
-		mq := NewMessageQueue(&c)
+		snd := NewSender(&c)
 
-		err := mq.Publish(&birdbroker.Message{
+		err := snd.Send(&birdbroker.Message{
 			Body:       "Foo",
 			Originator: "Bar",
 			Recipient:  "Baz",

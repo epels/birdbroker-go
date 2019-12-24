@@ -88,6 +88,7 @@ func (h *handler) sendMessage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.svc.SendMessage(&m); err != nil {
+		log.Printf("%T: SendMessage: %s", h.svc, err)
 		h.error(w, err)
 		return
 	}

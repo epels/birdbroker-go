@@ -28,7 +28,7 @@ func main() {
 		}
 	}()
 
-	mq := queue.NewMessageQueue(conn)
+	mq := queue.NewSender(conn)
 	svc := service.New(mq)
 	a := api.NewHandler(svc)
 

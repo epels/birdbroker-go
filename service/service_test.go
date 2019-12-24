@@ -62,7 +62,7 @@ func TestSendMessage(t *testing.T) {
 	t.Run("OK", func(t *testing.T) {
 		var called bool
 		s := service{
-			mq: &mock.MessageQueue{
+			snd: &mock.MessageQueue{
 				PublishFunc: func(m *birdbroker.Message) error {
 					called = true
 
