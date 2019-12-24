@@ -1,6 +1,7 @@
 package queue
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"testing"
@@ -39,7 +40,7 @@ func TestPublish(t *testing.T) {
 		}
 		snd := NewSender(&c)
 
-		err := snd.Send(&birdbroker.Message{
+		err := snd.Send(context.Background(), &birdbroker.Message{
 			Body:       "Foo",
 			Originator: "Bar",
 			Recipient:  "Baz",
@@ -60,7 +61,7 @@ func TestPublish(t *testing.T) {
 		}
 		snd := NewSender(&c)
 
-		err := snd.Send(&birdbroker.Message{
+		err := snd.Send(context.Background(), &birdbroker.Message{
 			Body:       "Foo",
 			Originator: "Bar",
 			Recipient:  "Baz",

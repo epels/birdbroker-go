@@ -1,6 +1,7 @@
 package queue
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -22,7 +23,7 @@ func NewSender(c conn) *sender {
 	return &sender{conn: c}
 }
 
-func (snd *sender) Send(m *birdbroker.Message) error {
+func (snd *sender) Send(ctx context.Context, m *birdbroker.Message) error {
 	b, err := json.Marshal(m)
 	if err != nil {
 		return fmt.Errorf("encoding/json: Marshal: %s", err)

@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"errors"
 	"testing"
 
@@ -52,7 +53,7 @@ func TestSendMessage(t *testing.T) {
 		for _, tc := range tt {
 			t.Run(tc.name, func(t *testing.T) {
 				var ce birdbroker.ClientError
-				if err := s.SendMessage(tc.m); !errors.As(err, &ce) {
+				if err := s.SendMessage(context.Background(), tc.m); !errors.As(err, &ce) {
 					t.Errorf("Got %T, expected ClientError", err)
 				}
 			})
@@ -86,7 +87,7 @@ func TestSendMessage(t *testing.T) {
 			Originator: "Foo",
 			Recipient:  "31612345678",
 		}
-		if err := s.SendMessage(&m); err != nil {
+		if err := s.SendMessage(context.Background(), &m); err != nil {
 			t.Fatalf("SendMessage: %s", err)
 		}
 		if !called {

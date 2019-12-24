@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"log"
@@ -20,7 +21,7 @@ type handler struct {
 }
 
 type service interface {
-	SendMessage(m *birdbroker.Message) error
+	SendMessage(ctx context.Context, m *birdbroker.Message) error
 }
 
 func NewHandler(s service) *handler {
@@ -87,7 +88,7 @@ func (h *handler) sendMessage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.svc.SendMessage(&m); err != nil {
+	if err := h.svc.SendMessage(context.Background(), &m); err != nil {
 		log.Printf("%T: SendMessage: %s", h.svc, err)
 		h.error(w, err)
 		return
