@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"sync"
 
 	"github.com/gorilla/mux"
 
@@ -13,6 +14,7 @@ import (
 
 type handler struct {
 	http.Handler
+	handlerOnce sync.Once // Guards initialization of Handler.
 
 	svc service
 }
@@ -21,17 +23,27 @@ type service interface {
 	SendMessage(m *birdbroker.Message) error
 }
 
-func NewHandler(s service) (*handler, error) {
-	return &handler{
-		svc: s,
-	}, nil
+func NewHandler(s service) *handler {
+	h := &handler{svc: s}
+	return h.withRoutes()
 }
 
 func (h *handler) withRoutes() *handler {
-	r := mux.NewRouter()
-	r.HandleFunc("/messages", h.sendMessage).Methods(http.MethodPost)
-	h.Handler = r
+	h.handlerOnce.Do(func() {
+		r := mux.NewRouter()
+		r.Use(h.logMiddleware)
+		r.HandleFunc("/messages", h.sendMessage).Methods(http.MethodPost)
+		h.Handler = r
+	})
 	return h
+}
+
+func (h *handler) logMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("Request: %s %s", r.Method, r.URL.Path)
+
+		next.ServeHTTP(w, r)
+	})
 }
 
 func (h *handler) error(w http.ResponseWriter, err error) {
