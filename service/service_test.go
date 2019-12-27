@@ -63,8 +63,8 @@ func TestSendMessage(t *testing.T) {
 	t.Run("OK", func(t *testing.T) {
 		var called bool
 		s := service{
-			snd: &mock.MessageQueue{
-				PublishFunc: func(m *birdbroker.Message) error {
+			snd: &mock.Sender{
+				SendFunc: func(m *birdbroker.Message) error {
 					called = true
 
 					if m.Body != "Hello" {

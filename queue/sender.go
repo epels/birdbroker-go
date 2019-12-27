@@ -12,14 +12,14 @@ import (
 const defaultPriority = 0
 
 type sender struct {
-	conn conn
+	conn producerConn
 }
 
-type conn interface {
+type producerConn interface {
 	Put(body []byte, pri uint32, delay, ttr time.Duration) (uint64, error)
 }
 
-func NewSender(c conn) *sender {
+func NewSender(c producerConn) *sender {
 	return &sender{conn: c}
 }
 

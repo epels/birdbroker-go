@@ -14,7 +14,7 @@ import (
 func TestPublish(t *testing.T) {
 	t.Run("OK", func(t *testing.T) {
 		var called bool
-		c := mock.Conn{
+		c := mock.ProducerConn{
 			PutFunc: func(body []byte, pri uint32, delay, ttr time.Duration) (uint64, error) {
 				called = true
 
@@ -54,7 +54,7 @@ func TestPublish(t *testing.T) {
 	})
 
 	t.Run("Put error", func(t *testing.T) {
-		c := mock.Conn{
+		c := mock.ProducerConn{
 			PutFunc: func(body []byte, pri uint32, delay, ttr time.Duration) (uint64, error) {
 				return 0, errors.New("oops")
 			},
