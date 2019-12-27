@@ -12,6 +12,7 @@ import (
 	"github.com/beanstalkd/go-beanstalk"
 
 	"github.com/epels/birdbroker-go"
+	"github.com/epels/birdbroker-go/messagebird"
 	"github.com/epels/birdbroker-go/queue"
 )
 
@@ -32,7 +33,10 @@ func (c *handler) ServeJob(ctx context.Context, m *birdbroker.Message) error {
 
 func main() {
 	// @todo: Populate h.snd.
-	var h handler
+	ak := mustGetenv("MESSAGEBIRD_ACCESS_KEY")
+	h := handler{
+		snd: messagebird.NewClient(ak),
+	}
 
 	bsAddr := mustGetenv("BEANSTALK_ADDR")
 	conn, err := beanstalk.DialTimeout("tcp", bsAddr, 10*time.Second)
