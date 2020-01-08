@@ -64,7 +64,7 @@ func (c *client) SendMessage(ctx context.Context, m *birdbroker.Message) error {
 		}
 	}()
 
-	if res.StatusCode != http.StatusOK && res.StatusCode != http.StatusCreated {
+	if res.StatusCode != http.StatusCreated {
 		b, err := ioutil.ReadAll(res.Body)
 		if err != nil {
 			log.Printf("io/ioutil: ReadAll: %s", err)

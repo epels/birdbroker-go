@@ -32,7 +32,6 @@ func (c *handler) ServeJob(ctx context.Context, m *birdbroker.Message) error {
 }
 
 func main() {
-	// @todo: Populate h.snd.
 	ak := mustGetenv("MESSAGEBIRD_ACCESS_KEY")
 	h := handler{
 		snd: messagebird.NewClient(ak),
