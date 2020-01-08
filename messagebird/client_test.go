@@ -70,6 +70,8 @@ func TestSendMessage(t *testing.T) {
 			if data.Recipients != "31612345678" {
 				t.Errorf("Got %q, expected 31612345678", data.Recipients[0])
 			}
+
+			w.WriteHeader(http.StatusCreated)
 		}))
 
 		c := NewClient("Secret")
