@@ -11,6 +11,7 @@ import (
 	"github.com/epels/birdbroker-go/internal/mock"
 )
 
+// @todo(emile): Simplify test, and consider making it table-driven.
 func TestListenAndServe(t *testing.T) {
 	t.Run("Closed", func(t *testing.T) {
 		hf := handlerFunc(func(ctx context.Context, m *birdbroker.Message) error {
@@ -24,6 +25,66 @@ func TestListenAndServe(t *testing.T) {
 		}
 		if err := cons.ListenAndServe(); !errors.Is(err, ErrConsumerClosed) {
 			t.Errorf("Got %T (%s), expected ErrConsumerClosed", err, err)
+		}
+	})
+
+	t.Run("Buries invalid jobs", func(t *testing.T) {
+		// once is used to only return a single job from Reserve.
+		var once sync.Once
+		// wg is decremented within the ReleaseFunc, so we can wait for it to
+		// be invoked before shutting down the consumer later (as
+		// ListenAndServe is ran on its own goroutine).
+		var wg sync.WaitGroup
+
+		hf := handlerFunc(func(ctx context.Context, m *birdbroker.Message) error {
+			t.Fatalf("Must never be called")
+			return nil
+		})
+		var buried bool
+		cons := NewConsumer(&mock.ConsumerConn{
+			BuryFunc: func(id uint64, pri uint32) error {
+				defer wg.Done()
+				buried = true
+				if id != 9000 {
+					t.Errorf("Got %d, expected 9000", id)
+				}
+				if pri != defaultPriority {
+					t.Errorf("Got %d, expected %d", pri, defaultPriority)
+				}
+				return nil
+			},
+			ReserveFunc: func(timeout time.Duration) (id uint64, body []byte, err error) {
+				// Only return a job on the first invocation.
+				once.Do(func() {
+					id = uint64(9000)
+					body = []byte("not valid json")
+					err = nil
+				})
+
+				if body == nil {
+					time.Sleep(timeout)
+					err = errors.New("timeout")
+				}
+				return
+			},
+		}, hf)
+
+		wg.Add(1)
+		go func() {
+			// Run on separate goroutine: ListenAndServe blocks until it's
+			// closed.
+			if err := cons.ListenAndServe(); !errors.Is(err, ErrConsumerClosed) {
+				t.Errorf("Got %T (%s), expected ErrConsumerClosed", err, err)
+			}
+		}()
+
+		wg.Wait()
+		if err := cons.Shutdown(context.Background()); err != nil {
+			t.Errorf("Consumer: Shutdown: %s", err)
+		}
+
+		if !buried {
+			t.Errorf("Got false, expected true")
 		}
 	})
 

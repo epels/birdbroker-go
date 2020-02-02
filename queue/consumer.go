@@ -20,6 +20,13 @@ type consumer struct {
 }
 
 type consumerConn interface {
+	// Bury sets a job to the "buried" state so it will not be picked up from
+	// the queue again. This state is intended for jobs that are considered
+	// "faulty", and need to be inspected manually by a human.
+	Bury(id uint64, pri uint32) error
+	// Delete drops a job from the queue. This should be the final state for
+	// any jobs that are handled successfully, or for well-formed jobs that
+	// should not be processed now, nor in the future.
 	Delete(id uint64) error
 	// Release releases a reserved job so it can be picked up by the worker
 	// again, much like a retry.
@@ -71,9 +78,10 @@ func (c *consumer) ListenAndServe() error {
 				if err := json.Unmarshal(b, &m); err != nil {
 					log.Printf("encoding/json: Unmarshal: %s", err)
 
-					// Delete the job: its payload has an invalid format, so
-					// there's no use in retrying.
-					if err = c.conn.Delete(id); err != nil {
+					// Bury the job: its payload has an invalid format, so
+					// there's no use in retrying, but it makes sense to
+					// inspect the job manually.
+					if err = c.conn.Bury(id, defaultPriority); err != nil {
 						log.Printf("%T: Delete: %s", c.h, err)
 					}
 					return
